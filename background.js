@@ -1,10 +1,10 @@
-var enabled = false;
+var enabled = true;
 var found = false;
 var notify = false;
-var accept = false;
+var accept = true;
 var interval = 60000;
+var godiva = new Audio('godiva.ogg');
 var changes = new Audio('changes.ogg');
-var reverse = localStorage["reverse"];
 var xmlhttp = new XMLHttpRequest();
 var sendemail = localStorage["sendemail"];
 var emailaddress;
@@ -35,7 +35,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
                               if (accept == true) {
                                   notify = true;
 
-                                  chrome.tabs.executeScript(tabId, { code:' var buttonl = document.getElementsByClassName("button").length;console.log(buttonl);var i = 0; for (i = 0; i < buttonl;i++) {console.log(i+1);console.log(document.getElementsByClassName("button")[i].href);if(document.getElementsByClassName("button")[i].nextSibling != null) {console.log(document.getElementsByClassName("button")[i].nextSibling.nodeValue);} else {console.log("Classic Sisyan Tasks");}}console.log("gotcha");document.getElementsByClassName("button")[0].click();'});
+                                  chrome.tabs.executeScript(tabId, {code: 'var buttons = document.getElementsByClassName("button").length; var go = 0; for (var i = 0; i < buttons; i++) { if (document.getElementsByClassName("button")[i].nextSibling != null) {console.log(document.getElementsByClassName("button")[i].nextSibling.nodeValue, "IT CAN BE ALIVE ↓");} else { go = i; console.log("Regular task ↓");} console.log(document.getElementsByClassName("button")[i].href);} document.getElementsByClassName("button")[go].click();'});
                               //createNotificationAccepted();
                           }else {
                               //chrome.tabs.executeScript(tabId, {code:'setTimeout( function(){ window.location.reload(); },'+ interval +');'} );
@@ -69,7 +69,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
                               // what do we do if there is no button but weve found a task
                               chrome.tabs.executeScript(tabId, { code: 'var notasks = document.getElementsByClassName("ewok-rater-no-tasks")[0]; notasks.innerText' }, function (results2) {
 
-                                  if (results2[0] == null && notify == true) { notify = false; createNotificationAccepted(); } else {
+                                  if (results2[0] == null && notify == true) { notify = false; createNotificationAccepted(); setTimeout(function(){chrome.tabs.update(tabId, {url: "https://www.raterhub.com/evaluation/rater"})}, 5000);} else {
 
                                       if (results2[0].indexOf('No tasks') > -1) {
 
@@ -129,7 +129,7 @@ function refreshPage(tabId) {
 
                 chrome.tabs.reload(tab2.id);
 
-            } else if (enabled && tab2.url.indexOf("/rater/task/task") < 0 && tab2.url.indexOf("/evaluation/rater") > -1) {
+            } else if (enabled && tab2.url.indexOf("/rater/task/index") > -1 && tab2.url.indexOf("/evaluation/rater") > -1) {
 
                 chrome.tabs.reload(tab2.id);
 
@@ -278,18 +278,16 @@ function checkboxOnClickSendEmail(info, tab) {
 
 }
 
-function checkboxOnClickSoundChanges(info, tab) {
+function checkboxOnClickSoundGodiva(info, tab) {
 
-    localStorage["reverse"] = "false";
-    changes = new Audio('changes.ogg');
-    changes.play();
+    godiva = new Audio('godiva.ogg');
+    godiva.play();
 
 }
 
-function checkboxOnClickSoundReverse(info, tab) {
+function checkboxOnClickSoundChanges(info, tab) {
 
-    localStorage["reverse"] = "true";
-    changes = new Audio('changesreverse.ogg');
+    changes = new Audio('changes.ogg');
     changes.play();
 
 }
@@ -303,7 +301,7 @@ var checkbox0 = chrome.contextMenus.create(
 var checkbox1 = chrome.contextMenus.create(
   { "title": "Refresh", "type": "radio", "onclick": checkboxOnClickRefresh, "documentUrlPatterns": [docUrl] });
 var checkbox2 = chrome.contextMenus.create(
-  { "title": "Refresh + Accept", "type": "radio", "onclick": checkboxOnClickAccept, "documentUrlPatterns": [docUrl] });
+  { "title": "Refresh + Accept", "checked": true, "type": "radio", "onclick": checkboxOnClickAccept, "documentUrlPatterns": [docUrl] });
 
 // email button
 if (sendemail == null || sendemail == "false") {
@@ -319,14 +317,9 @@ if (sendemail == null || sendemail == "false") {
 // create sound buttons
 var sparent = chrome.contextMenus.create({ "title": "Notification Sound", "documentUrlPatterns": [docUrl] });
 var schild1 = chrome.contextMenus.create(
-  { "title": "Changes", "parentId": sparent, "type": "radio", "onclick": checkboxOnClickSoundChanges, "documentUrlPatterns": [docUrl] });
+  { "title": "Lady Godiva's Operation", "parentId": sparent, "type": "radio", "onclick": checkboxOnClickSoundGodiva, "documentUrlPatterns": [docUrl] });
 var schild2 = chrome.contextMenus.create(
-  { "title": "Changes (Reverse)", "parentId": sparent, "type": "radio", "onclick": checkboxOnClickSoundReverse, "documentUrlPatterns": [docUrl] });
-
-if (reverse == "true") {
-    chrome.contextMenus.update(schild2, { "checked": true });
-    changes = new Audio('changesreverse.ogg');
-}
+  { "title": "Changes", "parentId": sparent, "type": "radio", "onclick": checkboxOnClickSoundChanges, "documentUrlPatterns": [docUrl] });
 
 // create interval buttons
 var parent = chrome.contextMenus.create({ "title": "Refresh Interval", "documentUrlPatterns": [docUrl] });
@@ -343,6 +336,6 @@ var child1 = chrome.contextMenus.create(
   { "title": "2 Seconds", "parentId": parent, "type": "radio", "onclick": checkboxOnClickInterval2, "documentUrlPatterns": [docUrl] });
 
 
-// set badge to off
-chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] });
-chrome.browserAction.setBadgeText({ text: "OFF" });
+// set badge to R+A
+chrome.browserAction.setBadgeBackgroundColor({ color: [0, 200, 0, 255] });
+chrome.browserAction.setBadgeText({ text: "R+A" });
